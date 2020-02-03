@@ -13,24 +13,38 @@ import re
 import scrapy
 from scrapy.linkextractors import LinkExtractor
 from scrapy.loader import ItemLoader
+from scrapy.utils.project import get_project_settings
+from scrapy.utils.request import request_fingerprint
 
 from crawler.items import CpdItem
+
+settings = get_project_settings()
 
 logger = logging.getLogger(__name__)
 
 
 class CpdSpider(scrapy.Spider):
+    def __init__(self, *args, **kwargs):
+        super(CpdSpider, self).__init__(*args, **kwargs)
+
     name = "cpd"
+
+    database_name = 'news'
+    table_name = 'cpd_news'
+    filter_name = 'id'
+
     allowed_domains = ["cpd.com.cn"]
 
     start_urls = [
         # 'http://www.cpd.com.cn/',
         'http://www.cpd.com.cn/n10216060/n10216158/',
+
         # 'http://news.cpd.com.cn/',
         'http://news.cpd.com.cn/n18151/',
         'http://news.cpd.com.cn/n3559/',
         'http://news.cpd.com.cn/n3569/',
         'http://news.cpd.com.cn/n3573/',
+
         # 'http://jt.cpd.com.cn/',
         'http://jt.cpd.com.cn/n462015/',
         'http://jt.cpd.com.cn/n462009/',
@@ -44,10 +58,12 @@ class CpdSpider(scrapy.Spider):
         'http://jt.cpd.com.cn/n462061/',
         'http://jt.cpd.com.cn/n462053/',
         'http://jt.cpd.com.cn/n462027/',
+
         # 'http://zhian.cpd.com.cn/',
         'http://zhian.cpd.com.cn/n26237006/',
         'http://zhian.cpd.com.cn/n26237008/',
         'http://zhian.cpd.com.cn/n26237014/',
+
         # 'http://minsheng.cpd.com.cn/',
         'http://minsheng.cpd.com.cn/n1448484/',
         'http://minsheng.cpd.com.cn/n1448482/',
@@ -56,7 +72,7 @@ class CpdSpider(scrapy.Spider):
         'http://minsheng.cpd.com.cn/n1448492/'
     ]
 
-    link = LinkExtractor(allow=start_urls)
+    link = LinkExtractor(allow=start_urls, deny='%3Cscript%3Edocument.write(location.href);%3C/script%3E')
 
     # # http://zhian.cpd.com.cn/n26237006/
     # p_index = re.compile('createPageHTML\((\d+), (\d+),')
@@ -80,8 +96,18 @@ class CpdSpider(scrapy.Spider):
     p_path2 = re.compile('(.*?)content.html')
 
     def start_requests(self):
+        try:
+            with open('../data/error/retry.tsv') as f:
+                lines = f.readlines()
+                for line in lines:
+                    news_url = line.split('\t')[0]
+                    yield scrapy.Request(url=news_url, callback=self.parse_news, dont_filter=True)
+
+        except IOError:
+            logger.info('retry.tsv not accessible')
+
         for url in self.start_urls:
-            yield scrapy.Request(url=url, callback=self.parse_index)
+            yield scrapy.Request(url=url, callback=self.parse_index, dont_filter=True)
 
     def parse_index(self, response):
         url = response.url
@@ -119,7 +145,10 @@ class CpdSpider(scrapy.Spider):
                 else:
                     self.logger.error(f'未知格式的 NEWS URL: {url}')
 
+            fp = request_fingerprint(response.request)
+
             cpd_item = ItemLoader(item=CpdItem(), response=response)
+            cpd_item.add_value('id', fp)
             cpd_item.add_value('url', url)
             cpd_item.add_xpath('title', '//*[@id="newslist"]/h1/gettitle/text()')
             cpd_item.add_xpath('content', '//*[@id="fz_test"]/div[1]/table')
@@ -130,6 +159,6 @@ class CpdSpider(scrapy.Spider):
             cpd_item.add_value('page', page)
             yield cpd_item.load_item()
 
-        links = self.link.extract_links(response)
+        links = self.link.extract_links(response,)
         for link in links:
             yield scrapy.Request(url=link.url, callback=self.parse_news)
