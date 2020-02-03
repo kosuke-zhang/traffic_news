@@ -5,11 +5,14 @@
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/items.html
 
+import logging
 import re
 
 from scrapy import Item, Field
 from scrapy.loader.processors import Join, MapCompose, TakeFirst
 from w3lib.html import remove_tags, remove_tags_with_content
+
+logger = logging.getLogger(__name__)
 
 
 class CrawlerItem(Item):
@@ -56,14 +59,12 @@ def clean(value):
 def remove_style(value):
     value = remove_tags_with_content(value, which_ones=('style',))
     value = remove_tags(value)
-    value = value.replace('\r\n', '')
-    value = value.replace('\n', '')
-    value = value.replace(' \u3000\u3000', '', 1)
     value = value.replace('\t', ' ')
+    value = value.strip()
     return value
 
 
-def get_id(url):
+def get_news_id(url):
     res = p1.match(url)
     if res:
         res = res.groups()
@@ -73,17 +74,22 @@ def get_id(url):
         res = set(res)
         res.remove(None)
         return res.pop()
-    return None
+    logger.error('Cannot extract news_id from url.')
+    return ''
 
 
 def get_category(url):
     path = p2.search(url)
     if path:
         return category[path[1]]
-    return None
+    logger.error('Unknown category.')
+    return '其他'
 
 
 class CpdItem(Item):
+    id = Field(
+        output_processor=TakeFirst(),
+    )
     url = Field(
         output_processor=TakeFirst(),
     )
@@ -108,7 +114,7 @@ class CpdItem(Item):
         output_processor=TakeFirst(),
     )
     news_id = Field(
-        input_processor=MapCompose(get_id),
+        input_processor=MapCompose(get_news_id),
         output_processor=TakeFirst(),
     )
     page = Field(

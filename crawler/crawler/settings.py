@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from datetime import datetime
 
 # Scrapy settings for crawler project
 #
@@ -15,6 +16,7 @@ SPIDER_MODULES = ['crawler.spiders']
 NEWSPIDER_MODULE = 'crawler.spiders'
 
 DOWNLOADER_MIDDLEWARES = {
+    'crawler.middlewares.ProxyMiddleware': 90,
     'crawler.middlewares.RandomUserAgentMiddleware': 543,
 }
 
@@ -26,12 +28,13 @@ ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 # CONCURRENT_REQUESTS = 32
-CONCURRENT_REQUESTS = 1
+CONCURRENT_REQUESTS = 5
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-# DOWNLOAD_DELAY = 1
+DOWNLOAD_DELAY = 0.2
+RANDOMIZE_DOWNLOAD_DELAY = False
 # The download delay setting will honor only one of:
 # CONCURRENT_REQUESTS_PER_DOMAIN = 16
 # CONCURRENT_REQUESTS_PER_IP = 16
@@ -94,13 +97,21 @@ ITEM_PIPELINES = {
 # HTTPCACHE_IGNORE_HTTP_CODES = []
 # HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
-DEPTH_LIMIT = 5
+DEPTH_LIMIT = 10
 
-LOG_FILE = '../log/crawler.log'
+LOG_FILE = f"../log/crawler_{datetime.now().strftime('%Y.%m.%d_%H:%M:%S')}.log"
 LOG_LEVEL = 'DEBUG'
 LOG_STDOUT = True
 
-JOBDIR = 'crawler/job_info/001'
+DUPEFILTER_CLASS = 'crawler.dupefilters.RFPDupeFilter'
+
+RETRY_HTTP_CODES = [500, 502, 503, 504, 522, 524, 408, 429, 405]
+
+# 数据库设置
+MYSQL_HOST = 'localhost'
+MYSQL_USER = 'root'
+MYSQL_PASSWORD = 'news_crawler'
+MYSQL_PORT = 3306
 
 USER_AGENT_LIST = [
     'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_8; en-us) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50',

@@ -5,11 +5,12 @@
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
+import base64
 import logging
+import os
 import random
 
 from scrapy import signals
-from scrapy.exceptions import IgnoreRequest
 from scrapy.utils.project import get_project_settings
 
 settings = get_project_settings()
@@ -116,25 +117,47 @@ class RandomUserAgentMiddleware(object):
 
     def __init__(self):
         self.user_agent_list = settings.get('USER_AGENT_LIST')
+        self.count = 0
 
     def process_request(self, request, spider):
         request.headers['User-Agent'] = random.choice(self.user_agent_list)
 
 
-class HttpError(IgnoreRequest):
-    """A non-200 response was filtered"""
-
-    def __init__(self, response, *args, **kwargs):
-        self.response = response
-        super(HttpError, self).__init__(*args, **kwargs)
-
-
 class SaveHttpErrorMiddleware(object):
+
+    def __init__(self):
+        if os.path.exists('../data/error/405.tsv'):
+            os.rename('../data/error/405.tsv', '../data/error/retry.tsv')
+
+        if os.path.exists('../data/error/error.tsv'):
+            os.remove('../data/error/error.tsv')
 
     def process_spider_input(self, response, spider):
         if 200 <= response.status < 300:  # common case
             return
-        with open('../data/error/cpd_error.tsv', 'a+') as f:
-            line = f'{response.url}\t{response.status}\n'
-            f.write(line)
+        if response.status == 405:
+            with open('../data/error/405.tsv', 'a+') as f:
+                line = f'{response.url}\t{response.status}\n'
+                f.write(line)
+        else:
+            with open('../data/error/error.tsv', 'a+') as f:
+                line = f'{response.url}\t{response.status}\n'
+                f.write(line)
         return
+
+
+# 代理服务器
+proxyServer = "http://http-dyn.abuyun.com:9020"
+
+# 代理隧道验证信息
+proxyUser = "HQOD0I34O25GCC2D"
+proxyPass = "78380759AA00F51F"
+
+proxyAuth = "Basic " + base64.urlsafe_b64encode(bytes((proxyUser + ":" + proxyPass), "ascii")).decode("utf8")
+
+
+class ProxyMiddleware(object):
+
+    def process_request(self, request, spider):
+        request.meta["proxy"] = proxyServer
+        request.headers["Proxy-Authorization"] = proxyAuth

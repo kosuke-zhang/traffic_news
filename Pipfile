@@ -9,6 +9,8 @@ verify_ssl = true
 scrapy = "*"
 ipython = "*"
 w3lib = "*"
+requests = "*"
+pymysql = "*"
 
 [requires]
 python_version = "3.7"
