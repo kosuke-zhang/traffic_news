@@ -6,7 +6,7 @@ create table if not exists cpd_news
 (
 	id varchar(40) not null,
 	url varchar(255) not null,
-	title varchar(50) not null,
+	title varchar(255) not null,
 	content text not null,
 	category varchar(5) not null,
 	source varchar(50) not null,

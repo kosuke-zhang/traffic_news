@@ -37,6 +37,7 @@ class RFPDupeFilter(BaseDupeFilter):
             sql = "SELECT {0} FROM {1} WHERE 1".format(filter_name, table_name)
             self.cursor.execute(sql)
             ids = self.cursor.fetchall()
+            ids = map(lambda x: x[0], ids)
             self.fingerprints.update(ids)
 
     @classmethod

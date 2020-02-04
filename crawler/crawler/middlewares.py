@@ -126,20 +126,13 @@ class RandomUserAgentMiddleware(object):
 class SaveHttpErrorMiddleware(object):
 
     def __init__(self):
-        if os.path.exists('../data/error/405.tsv'):
-            os.rename('../data/error/405.tsv', '../data/error/retry.tsv')
-
         if os.path.exists('../data/error/error.tsv'):
-            os.remove('../data/error/error.tsv')
+            os.rename('../data/error/error.tsv', '../data/error/retry.tsv')
 
     def process_spider_input(self, response, spider):
         if 200 <= response.status < 300:  # common case
             return
-        if response.status == 405:
-            with open('../data/error/405.tsv', 'a+') as f:
-                line = f'{response.url}\t{response.status}\n'
-                f.write(line)
-        else:
+        if response.status != 404:
             with open('../data/error/error.tsv', 'a+') as f:
                 line = f'{response.url}\t{response.status}\n'
                 f.write(line)

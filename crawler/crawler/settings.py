@@ -108,7 +108,7 @@ DUPEFILTER_CLASS = 'crawler.dupefilters.RFPDupeFilter'
 RETRY_HTTP_CODES = [500, 502, 503, 504, 522, 524, 408, 429, 405]
 
 # 数据库设置
-MYSQL_HOST = 'localhost'
+MYSQL_HOST = '39.99.157.187'
 MYSQL_USER = 'root'
 MYSQL_PASSWORD = 'news_crawler'
 MYSQL_PORT = 3306

@@ -23,23 +23,23 @@ class SavePipeline(object):
         mysql_user = settings.get('MYSQL_USER', 'root')
         mysql_pwd = settings.get('MYSQL_PASSWORD', 'news_crawler')
         mysql_port = settings.get('MYSQL_PORT', 3306)
-        database = 'cpd'
+        database = 'news'
         self.db = pymysql.connect(host, mysql_user, mysql_pwd, database, mysql_port)
         self.cursor = self.db.cursor()
 
     def process_item(self, item, spider):
-        if item.__len__() != 9:
-            raise DropItem(item)
         sql = """INSERT INTO
-                        `data`(`id`, `url`, `title`, `content`, `category`, `source`, `date`, `news_id`, `page`)
+                        `cpd_news`(`id`, `url`, `title`, `content`, `category`, `source`, `date`, `news_id`, `page`)
                         VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
                         """
         try:
-            self.cursor.execute(sql, (item['id'], item['url'], item['title'], item['content'], item['category'],
-                                   item['source'], item['date'], item['news_id'], item['page']))
+            self.cursor.execute(sql, (
+                item.get('id', ''), item.get('url', ''), item.get('title', ''), item.get('content', ''),
+                item.get('category', ''),
+                item.get('source', ''), item.get('date', ''), item.get('news_id', ''), item.get('page', '')))
             self.db.commit()
         except Exception as e:
-            spider.logger.error(f'occur error when db commit date: {e.args[1]}')
+            spider.logger.error(f'occur error when db commit date: {e.args[1]}; url: {item.get("url", "")}')
             self.db.rollback()
         return
 

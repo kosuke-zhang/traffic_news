@@ -72,7 +72,7 @@ class CpdSpider(scrapy.Spider):
         'http://minsheng.cpd.com.cn/n1448492/'
     ]
 
-    link = LinkExtractor(allow=start_urls, deny='%3Cscript%3Edocument.write(location.href);%3C/script%3E')
+    link = LinkExtractor(allow=start_urls, deny='.*?<script>document\.write\(location\.href\);</script>')
 
     # # http://zhian.cpd.com.cn/n26237006/
     # p_index = re.compile('createPageHTML\((\d+), (\d+),')
@@ -101,7 +101,7 @@ class CpdSpider(scrapy.Spider):
                 lines = f.readlines()
                 for line in lines:
                     news_url = line.split('\t')[0]
-                    yield scrapy.Request(url=news_url, callback=self.parse_news, dont_filter=True)
+                    yield scrapy.Request(url=news_url, callback=self.parse_news)
 
         except IOError:
             logger.info('retry.tsv not accessible')
@@ -120,9 +120,11 @@ class CpdSpider(scrapy.Spider):
 
     def parse_news(self, response):
         url = response.url
-        next_page_html = response.xpath('//*[@id="autopage"]//script').get()
+        title = response.xpath('//*[@id="newslist"]/h1/gettitle/text()').get()
+
         # 判断是 index 页面，还是 news 页面
-        if next_page_html is not None:
+        if title is not None:
+            next_page_html = response.xpath('//*[@id="autopage"]//script').get()
 
             page = response.meta.get('page', 1)
 
@@ -159,6 +161,6 @@ class CpdSpider(scrapy.Spider):
             cpd_item.add_value('page', page)
             yield cpd_item.load_item()
 
-        links = self.link.extract_links(response,)
+        links = self.link.extract_links(response, )
         for link in links:
             yield scrapy.Request(url=link.url, callback=self.parse_news)
