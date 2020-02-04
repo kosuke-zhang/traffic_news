@@ -36,7 +36,7 @@ class SavePipeline(object):
             self.cursor.execute(sql, (
                 item.get('id', ''), item.get('url', ''), item.get('title', ''), item.get('content', ''),
                 item.get('category', ''),
-                item.get('source', ''), item.get('date', ''), item.get('news_id', ''), item.get('page', '')))
+                item.get('source', ''), item.get('date', ''), item.get('news_id', ''), item.get('page', 0)))
             self.db.commit()
         except Exception as e:
             spider.logger.error(f'occur error when db commit date: {e.args[1]}; url: {item.get("url", "")}')
