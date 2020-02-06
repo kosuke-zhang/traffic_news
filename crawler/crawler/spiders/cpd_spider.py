@@ -8,6 +8,7 @@
 
 
 import logging
+import os
 import re
 
 import scrapy
@@ -97,7 +98,10 @@ class CpdSpider(scrapy.Spider):
 
     def start_requests(self):
         try:
-            with open('../data/error/retry.tsv') as f:
+            path = f'error/{self.name}'
+            retry_file = os.path.join(path, 'retry.tsv')
+
+            with open(retry_file, 'r') as f:
                 lines = f.readlines()
                 for line in lines:
                     news_url = line.split('\t')[0]

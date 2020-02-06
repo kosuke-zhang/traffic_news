@@ -10,15 +10,12 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: news_crawler
-#      MYSQL_DATABASE: cpd
-#      MYSQL_USER: user1
-#      MYSQL_PASSWORD: password1
     ports:
       - '3306:3306'
     volumes:
-      - ../data/mysql/db:/var/lib/mysql
-      - ../data/mysql/conf:/etc/mysql/conf.d
-      - ./init/cpd.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - data/mysql/db:/var/lib/mysql
+#      - data/mysql/conf:/etc/mysql/conf.d
+      - init/cpd.sql:/docker-entrypoint-initdb.d/init.sql:ro
 
   gui:
     depends_on:

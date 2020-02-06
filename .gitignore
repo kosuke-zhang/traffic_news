@@ -1,6 +1,8 @@
 # Other
 nohup.out
 data/
+error/
+log/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
