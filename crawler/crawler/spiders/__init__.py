@@ -5,7 +5,5 @@
 
 import os
 
-if not os.path.exists('error/cpd'):
-    os.makedirs('error/cpd')
 if not os.path.exists('log/cpd'):
     os.makedirs('log/cpd')

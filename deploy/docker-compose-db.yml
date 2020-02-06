@@ -6,16 +6,14 @@ services:
     image: mysql
     container_name: mysql-crawler
     command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci #设置utf8字符集
-    #    command: --default-authentication-plugin=mysql_native_password
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: news_crawler
     ports:
       - '3306:3306'
     volumes:
-      - data/mysql/db:/var/lib/mysql
-#      - data/mysql/conf:/etc/mysql/conf.d
-      - init/cpd.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ../data/mysql/db:/var/lib/mysql
+      - ./init/cpd.sql:/docker-entrypoint-initdb.d/init.sql:ro
 
   gui:
     depends_on:
@@ -27,5 +25,4 @@ services:
       MYSQL_ROOT_PASSWORD: news_crawler
       PMA_HOST: db
     ports:
-      - '8080:80'
-
+      - '8000:80'

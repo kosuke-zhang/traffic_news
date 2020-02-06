@@ -8,8 +8,8 @@
 
 
 import logging
-import os
 import re
+from datetime import datetime
 
 import scrapy
 from scrapy.linkextractors import LinkExtractor
@@ -29,6 +29,10 @@ class CpdSpider(scrapy.Spider):
         super(CpdSpider, self).__init__(*args, **kwargs)
 
     name = "cpd"
+
+    custom_settings = {
+        'LOG_FILE': f"log/{name}/crawler_{datetime.now().strftime('%Y.%m.%d_%H:%M:%S')}.log"
+    }
 
     database_name = 'news'
     table_name = 'cpd_news'
@@ -97,19 +101,6 @@ class CpdSpider(scrapy.Spider):
     p_path2 = re.compile('(.*?)content.html')
 
     def start_requests(self):
-        try:
-            path = f'error/{self.name}'
-            retry_file = os.path.join(path, 'retry.tsv')
-
-            with open(retry_file, 'r') as f:
-                lines = f.readlines()
-                for line in lines:
-                    news_url = line.split('\t')[0]
-                    yield scrapy.Request(url=news_url, callback=self.parse_news)
-
-        except IOError:
-            logger.info('retry.tsv not accessible')
-
         for url in self.start_urls:
             yield scrapy.Request(url=url, callback=self.parse_index, dont_filter=True)
 
@@ -165,6 +156,6 @@ class CpdSpider(scrapy.Spider):
             cpd_item.add_value('page', page)
             yield cpd_item.load_item()
 
-        links = self.link.extract_links(response, )
+        links = self.link.extract_links(response)
         for link in links:
             yield scrapy.Request(url=link.url, callback=self.parse_news)
