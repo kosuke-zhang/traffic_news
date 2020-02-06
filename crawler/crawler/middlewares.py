@@ -124,16 +124,27 @@ class RandomUserAgentMiddleware(object):
 
 
 class SaveHttpErrorMiddleware(object):
+    @classmethod
+    def from_crawler(cls, crawler):
+        # This method is used by Scrapy to create your spiders.
+        return cls(crawler)
 
-    def __init__(self):
-        if os.path.exists('../data/error/error.tsv'):
-            os.rename('../data/error/error.tsv', '../data/error/retry.tsv')
+    def __init__(self, crawler):
+        spider_name = crawler.spider.name
+
+        path = f'error/{spider_name}'
+
+        self.error_file = os.path.join(path, 'error.tsv')
+        self.retry_file = os.path.join(path, 'retry.tsv')
+
+        if os.path.exists(self.error_file):
+            os.rename(self.error_file, self.retry_file)
 
     def process_spider_input(self, response, spider):
         if 200 <= response.status < 300:  # common case
             return
         if response.status != 404:
-            with open('../data/error/error.tsv', 'a+') as f:
+            with open(self.error_file, 'a+') as f:
                 line = f'{response.url}\t{response.status}\n'
                 f.write(line)
         return

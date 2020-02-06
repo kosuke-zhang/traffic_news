@@ -99,7 +99,7 @@ ITEM_PIPELINES = {
 
 DEPTH_LIMIT = 10
 
-LOG_FILE = f"../log/crawler_{datetime.now().strftime('%Y.%m.%d_%H:%M:%S')}.log"
+# LOG_FILE = f"log/crawler_{datetime.now().strftime('%Y.%m.%d_%H:%M:%S')}.log"
 LOG_LEVEL = 'DEBUG'
 LOG_STDOUT = True
 
