@@ -54,6 +54,7 @@ COOKIES_ENABLED = False
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 SPIDER_MIDDLEWARES = {
+    'crawler.middlewares.SaveHttpErrorMiddleware': 49,
     'crawler.middlewares.CrawlerSpiderMiddleware': 543,
 }
 
@@ -102,6 +103,8 @@ LOG_STDOUT = True
 DUPEFILTER_CLASS = 'crawler.dupefilters.RFPDupeFilter'
 
 RETRY_HTTP_CODES = [500, 502, 503, 504, 522, 524, 408, 429, 405]
+
+REDIRECT_ENABLED = False
 
 # 数据库设置
 dev = os.getenv('ScrapyDev', False)
