@@ -47,21 +47,22 @@ class SavePipeline(object):
 
         try:
             self.cursor.execute(sql_content, (news_id, request_id, url, content, page))
+            self.db.commit()
         except Exception as e:
             self.db.rollback()
             if e.args[0] == 1452:
                 try:
                     self.cursor.execute(sql_news, (news_id, title, category, source, date, total_page))
+                    self.db.commit()
                 except Exception as e:
                     self.db.rollback()
                     spider.logger.error(e)
-                self.db.commit()
                 try:
                     self.cursor.execute(sql_content, (news_id, request_id, url, content, page))
+                    self.db.commit()
                 except Exception as e:
                     self.db.rollback()
                     spider.logger.error(e)
-                self.db.commit()
             else:
                 spider.logger.error(f'occur error when db commit date: {e.args[1]}; url: {item.get("url", "")}')
         return
